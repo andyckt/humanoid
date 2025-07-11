@@ -41,7 +41,7 @@ export async function subscribeToWaitingList(email: string): Promise<Subscriptio
 
     return {
       success: true,
-      message: 'Successfully joined the waiting list!'
+      message: "We'll notify you when we launch."
     };
   } catch (error) {
     console.error('Unexpected error during subscription:', error);

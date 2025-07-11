@@ -5,10 +5,12 @@ import type React from "react"
 import { SplineScene } from "@/components/ui/splite"
 import { Spotlight } from "@/components/ui/spotlight"
 import { useState, useEffect } from "react"
+import { WaitingList } from "@/components/waiting-list"
 
 export function NewYorkerSpline() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [showEnter, setShowEnter] = useState(false)
+  const [showWaitingList, setShowWaitingList] = useState(false)
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect()
@@ -19,8 +21,7 @@ export function NewYorkerSpline() {
   }
 
   const handleEnterClick = () => {
-    // This will be a placeholder for your new functionality
-    console.log("Enter clicked - ready for your new content!")
+    setShowWaitingList(true)
   }
 
   useEffect(() => {
@@ -61,6 +62,13 @@ export function NewYorkerSpline() {
           </div>
         </div>
       </div>
+      
+      {/* Waiting List Interface */}
+      {showWaitingList && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-95 transition-all duration-500 ease-in-out">
+          <WaitingList />
+        </div>
+      )}
     </div>
   )
 }

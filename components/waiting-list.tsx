@@ -3,21 +3,37 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { subscribeToWaitingList } from "@/lib/email-service"
 
 export function WaitingList() {
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState("")
+  const [isError, setIsError] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setIsError(false)
     
-    // Simulate submission - will be replaced with actual backend call later
-    setTimeout(() => {
-      setSubmitted(true)
+    try {
+      const response = await subscribeToWaitingList(email)
+      
+      if (response.success) {
+        setSubmitted(true)
+        setMessage(response.message)
+      } else {
+        setIsError(true)
+        setMessage(response.message)
+      }
+    } catch (error) {
+      setIsError(true)
+      setMessage("An unexpected error occurred. Please try again.")
+      console.error("Error submitting email:", error)
+    } finally {
       setLoading(false)
-    }, 800)
+    }
   }
 
   return (
@@ -58,10 +74,11 @@ export function WaitingList() {
                 ) : "Join"}
               </Button>
             </form>
+            {isError && <p className="text-red-400 text-sm mt-2">{message}</p>}
           </div>
         ) : (
           <div className="animate-fade-in">
-            <p className="text-gray-300 text-lg">We'll notify you when we launch.</p>
+            <p className="text-gray-300 text-lg">{message || "We'll notify you when we launch."}</p>
           </div>
         )}
       </div>

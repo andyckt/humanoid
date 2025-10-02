@@ -7,6 +7,12 @@ export interface SubscriptionResponse {
   message: string;
 }
 
+export interface EmailListResponse {
+  success: boolean;
+  data?: WaitingListSubscriber[];
+  error?: string;
+}
+
 /**
  * Adds an email to the waiting list in MongoDB
  */
@@ -50,6 +56,30 @@ export async function subscribeToWaitingList(email: string): Promise<Subscriptio
     return {
       success: false,
       message: 'Failed to join the waiting list. Please try again later.'
+    };
+  }
+}
+
+/**
+ * Retrieves all emails from the waiting list in MongoDB
+ */
+export async function getAllEmails(): Promise<EmailListResponse> {
+  try {
+    // Get the waiting list collection
+    const collection = await getCollection(COLLECTIONS.WAITING_LIST);
+    
+    // Fetch all emails, sorted by subscription date (newest first)
+    const emails = await collection.find({}).sort({ subscribed_at: -1 }).toArray();
+
+    return {
+      success: true,
+      data: emails as WaitingListSubscriber[]
+    };
+  } catch (error) {
+    console.error('Error retrieving emails from waiting list:', error);
+    return {
+      success: false,
+      error: 'Failed to retrieve emails from the waiting list.'
     };
   }
 } 

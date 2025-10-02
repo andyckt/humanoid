@@ -43,10 +43,21 @@ pnpm dev
 2. The `subscribeToWaitingList` function in `lib/email-service.ts` handles the submission to MongoDB.
 3. Emails are stored in the `waiting_list` collection in MongoDB Atlas.
 
+### Admin Dashboard
+
+The project includes an admin dashboard to view all collected emails:
+
+1. Access the admin dashboard at `/admin`
+2. Enter the password: `AHR2025` to log in
+3. View all collected emails in a table format
+4. Export the email list to CSV for external use
+
+The admin page is protected with a password to ensure only authorized users can access the collected data.
+
 ### Production Deployment
 
 For production deployment, make sure to:
 
 1. Set the environment variables in your hosting platform (Vercel, Netlify, etc.)
-2. Remove the hardcoded fallback values in `lib/supabase.ts` before deploying to production
+2. Consider changing the admin password for better security
 3. Consider implementing rate limiting to prevent abuse of the email submission endpoint 

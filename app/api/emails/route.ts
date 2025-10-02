@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getAllEmails } from '@/lib/email-service'
 
+// Mark as server-side only
+export const runtime = 'nodejs';
+
 // API endpoint to get all emails
 export async function GET(request: Request) {
   try {

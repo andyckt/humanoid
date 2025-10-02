@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 
+// Mark as server-side only
+export const runtime = 'nodejs';
+
 // Simple password validation endpoint
 export async function POST(request: Request) {
   try {

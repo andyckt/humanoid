@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { subscribeToWaitingList } from '@/lib/email-service'
 
+// Mark as server-side only
+export const runtime = 'nodejs';
+
 // API endpoint to subscribe to the waiting list
 export async function POST(request: Request) {
   try {

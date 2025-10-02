@@ -5,6 +5,9 @@ export interface SubscriptionResponse {
   message: string;
 }
 
+// Check if we're running on the server side
+const isServer = typeof window === 'undefined';
+
 /**
  * Adds an email to the waiting list in MongoDB
  */
@@ -15,6 +18,15 @@ export async function subscribeToWaitingList(email: string): Promise<Subscriptio
       return {
         success: false,
         message: 'Please provide a valid email address.'
+      };
+    }
+
+    // Ensure we're on the server
+    if (!isServer) {
+      console.error('MongoDB operations should only be performed on the server');
+      return {
+        success: false,
+        message: 'Server error. Please try again later.'
       };
     }
 
@@ -56,6 +68,12 @@ export async function subscribeToWaitingList(email: string): Promise<Subscriptio
  */
 export async function getAllEmails() {
   try {
+    // Ensure we're on the server
+    if (!isServer) {
+      console.error('MongoDB operations should only be performed on the server');
+      throw new Error('Server-side function called on client');
+    }
+
     const client = await clientPromise;
     const db = client.db();
     const collection = db.collection('AHR');

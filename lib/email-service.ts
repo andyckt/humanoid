@@ -1,3 +1,6 @@
+// Mark this file as server-only to prevent it from being bundled on the client
+export const dynamic = 'force-dynamic';
+
 import { getCollection } from './mongodb';
 import { COLLECTIONS, WaitingListSubscriber } from './schemas';
 import { MongoServerError } from 'mongodb';

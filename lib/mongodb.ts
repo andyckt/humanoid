@@ -1,3 +1,7 @@
+// Mark this file as server-only to prevent it from being bundled on the client
+// This prevents "Can't resolve 'tls'" and similar errors
+export const dynamic = 'force-dynamic';
+
 import { MongoClient, ServerApiVersion } from 'mongodb';
 
 // Use environment variables for MongoDB configuration

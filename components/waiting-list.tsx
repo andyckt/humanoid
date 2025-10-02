@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { subscribeToWaitingList } from "@/lib/email-service"
+import { subscribeEmail } from "@/app/actions"
 
 export function WaitingList() {
   const [email, setEmail] = useState("")
@@ -18,7 +18,7 @@ export function WaitingList() {
     setIsError(false)
     
     try {
-      const response = await subscribeToWaitingList(email)
+      const response = await subscribeEmail(email)
       
       if (response.success) {
         setSubmitted(true)

@@ -1,44 +1,41 @@
-import { supabase } from '../lib/supabase';
+import clientPromise, { getDatabase } from '../lib/mongodb';
+import { COLLECTIONS, INDEXES } from '../lib/schemas';
 
-async function createWaitingListTable() {
+async function setupMongoDB() {
   try {
-    console.log('Creating waiting_list table...');
+    console.log('Setting up MongoDB collections and indexes...');
     
-    // Using the SQL query feature of Supabase to create the table
-    const { error } = await supabase.rpc('create_waiting_list_table', {});
+    // Connect to MongoDB
+    const client = await clientPromise;
+    const db = await getDatabase();
     
-    if (error) {
-      console.error('Error creating table:', error);
-      
-      // If the RPC doesn't exist, provide SQL to run manually
-      console.log('\nIf the RPC method is not set up, run the following SQL in the Supabase SQL Editor:');
-      console.log(`
-CREATE TABLE IF NOT EXISTS public.waiting_list (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  subscribed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Set up Row Level Security
-ALTER TABLE public.waiting_list ENABLE ROW LEVEL SECURITY;
-
--- Create policy to allow inserts from anonymous users
-CREATE POLICY "Allow anonymous inserts to waiting_list" ON public.waiting_list 
-FOR INSERT WITH CHECK (true);
-
--- Create policy to allow the service role to read all emails
-CREATE POLICY "Allow service role to read waiting_list" ON public.waiting_list 
-FOR SELECT USING (auth.role() = 'service_role');
-      `);
-    } else {
-      console.log('Table created successfully!');
+    // Create the waiting list collection if it doesn't exist
+    const collections = await db.listCollections({ name: COLLECTIONS.WAITING_LIST }).toArray();
+    
+    if (collections.length === 0) {
+      console.log(`Creating ${COLLECTIONS.WAITING_LIST} collection...`);
+      await db.createCollection(COLLECTIONS.WAITING_LIST);
     }
+    
+    // Create indexes
+    console.log(`Setting up indexes for ${COLLECTIONS.WAITING_LIST} collection...`);
+    const waitingListCollection = db.collection(COLLECTIONS.WAITING_LIST);
+    
+    // Create unique index on email field
+    const waitingListIndexes = INDEXES[COLLECTIONS.WAITING_LIST];
+    for (const indexSpec of waitingListIndexes) {
+      await waitingListCollection.createIndex(indexSpec.key, { unique: indexSpec.unique });
+    }
+    
+    console.log('MongoDB setup completed successfully!');
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('Error setting up MongoDB:', error);
   } finally {
+    // Close the connection
+    const client = await clientPromise;
+    await client.close();
     process.exit(0);
   }
 }
 
-createWaitingListTable(); 
+setupMongoDB(); 

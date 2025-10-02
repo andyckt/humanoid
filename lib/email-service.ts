@@ -1,4 +1,6 @@
-import { supabase } from './supabase';
+import { getCollection } from './mongodb';
+import { COLLECTIONS, WaitingListSubscriber } from './schemas';
+import { MongoServerError } from 'mongodb';
 
 export interface SubscriptionResponse {
   success: boolean;
@@ -6,7 +8,7 @@ export interface SubscriptionResponse {
 }
 
 /**
- * Adds an email to the waiting list in Supabase
+ * Adds an email to the waiting list in MongoDB
  */
 export async function subscribeToWaitingList(email: string): Promise<SubscriptionResponse> {
   try {
@@ -18,36 +20,36 @@ export async function subscribeToWaitingList(email: string): Promise<Subscriptio
       };
     }
 
-    // Insert the email into the 'waiting_list' table
-    const { error } = await supabase
-      .from('waiting_list')
-      .insert([{ email, subscribed_at: new Date().toISOString() }]);
+    // Get the waiting list collection
+    const collection = await getCollection(COLLECTIONS.WAITING_LIST);
+    
+    // Create the subscriber document
+    const subscriber: WaitingListSubscriber = {
+      email,
+      subscribed_at: new Date(),
+      created_at: new Date()
+    };
 
-    if (error) {
-      // Check if it's a duplicate email error
-      if (error.code === '23505') {
-        return {
-          success: false,
-          message: 'This email is already on our waiting list.'
-        };
-      }
-      
-      console.error('Error subscribing to waiting list:', error);
-      return {
-        success: false,
-        message: 'Failed to join the waiting list. Please try again later.'
-      };
-    }
+    // Insert the email into the 'waiting_list' collection
+    await collection.insertOne(subscriber);
 
     return {
       success: true,
       message: "We'll notify you when we launch."
     };
   } catch (error) {
-    console.error('Unexpected error during subscription:', error);
+    // Check if it's a duplicate email error (MongoDB duplicate key error)
+    if (error instanceof MongoServerError && error.code === 11000) {
+      return {
+        success: false,
+        message: 'This email is already on our waiting list.'
+      };
+    }
+    
+    console.error('Error subscribing to waiting list:', error);
     return {
       success: false,
-      message: 'An unexpected error occurred. Please try again later.'
+      message: 'Failed to join the waiting list. Please try again later.'
     };
   }
 } 

@@ -1,8 +1,8 @@
 # Humanoid Project
 
-## Supabase Integration for Email Collection
+## MongoDB Integration for Email Collection
 
-This project uses Supabase to store emails collected from the waiting list form.
+This project uses MongoDB to store emails collected from the waiting list form.
 
 ### Setup
 
@@ -11,46 +11,14 @@ This project uses Supabase to store emails collected from the waiting list form.
 pnpm install
 ```
 
-2. Set up environment variables (optional for development):
+2. Set up environment variables:
    - Create a `.env.local` file in the root directory
-   - Add the following variables:
+   - Add the following variable with your MongoDB connection string:
    ```
-   NEXT_PUBLIC_SUPABASE_URL=https://fxspesehsgkddmdltwca.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4c3Blc2Voc2drZGRtZGx0d2NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyMDQ3OTEsImV4cCI6MjA2Nzc4MDc5MX0.FdICwXx92Hdnh77Wz6YuIWdrLOXTDA0UM3XkUO4kA3c
+   MONGODB_URI=mongodb+srv://username:password@cluster0.mongodb.net/humanoid?retryWrites=true&w=majority
    ```
-   - For development, these values are also hardcoded as fallbacks in `lib/supabase.ts`
 
-3. Set up the Supabase table:
-
-There are two ways to create the required database table:
-
-**Option 1**: Run the setup script (requires Supabase RPC setup):
-```bash
-pnpm run setup-db
-```
-
-**Option 2**: Manually run the SQL in the Supabase SQL Editor:
-```sql
-CREATE TABLE IF NOT EXISTS public.waiting_list (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  subscribed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Set up Row Level Security
-ALTER TABLE public.waiting_list ENABLE ROW LEVEL SECURITY;
-
--- Create policy to allow inserts from anonymous users
-CREATE POLICY "Allow anonymous inserts to waiting_list" ON public.waiting_list 
-FOR INSERT WITH CHECK (true);
-
--- Create policy to allow the service role to read all emails
-CREATE POLICY "Allow service role to read waiting_list" ON public.waiting_list 
-FOR SELECT USING (auth.role() = 'service_role');
-```
-
-4. Run the development server:
+3. Run the development server:
 ```bash
 pnpm dev
 ```
@@ -58,13 +26,28 @@ pnpm dev
 ### How It Works
 
 1. The `WaitingList` component collects emails from users.
-2. The `subscribeToWaitingList` function in `lib/email-service.ts` handles the submission to Supabase.
-3. Emails are stored in the `waiting_list` table in Supabase.
+2. The emails are sent to the `/api/subscribe` endpoint.
+3. The `subscribeToWaitingList` function in `lib/email-service.ts` handles the submission to MongoDB.
+4. Emails are stored in the `AHR` collection in MongoDB.
+
+### Admin Dashboard
+
+An admin dashboard is available at `/admin` to view all collected emails. 
+
+- Access the admin page at: http://localhost:3000/admin (when running locally)
+- Password: AHR2025
+
+The admin dashboard features:
+- Password protection
+- List of all emails collected
+- Timestamps for when users joined the waiting list
 
 ### Production Deployment
 
 For production deployment, make sure to:
 
-1. Set the environment variables in your hosting platform (Vercel, Netlify, etc.)
-2. Remove the hardcoded fallback values in `lib/supabase.ts` before deploying to production
-3. Consider implementing rate limiting to prevent abuse of the email submission endpoint 
+1. Set up a MongoDB Atlas account and create a database
+2. Create a collection named `AHR` to store the emails
+3. Set the environment variables in your hosting platform (Vercel, Netlify, etc.)
+4. Consider implementing rate limiting to prevent abuse of the email submission endpoint
+5. Consider using a more secure authentication method for the admin page in production

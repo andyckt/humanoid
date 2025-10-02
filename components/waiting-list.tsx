@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { subscribeToWaitingList } from "@/lib/email-service"
 
 export function WaitingList() {
   const [email, setEmail] = useState("")
@@ -18,14 +17,22 @@ export function WaitingList() {
     setIsError(false)
     
     try {
-      const response = await subscribeToWaitingList(email)
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
       
-      if (response.success) {
+      const data = await response.json();
+      
+      if (data.success) {
         setSubmitted(true)
-        setMessage(response.message)
+        setMessage(data.message)
       } else {
         setIsError(true)
-        setMessage(response.message)
+        setMessage(data.message)
       }
     } catch (error) {
       setIsError(true)
@@ -78,7 +85,7 @@ export function WaitingList() {
           </div>
         ) : (
           <div className="animate-fade-in">
-            <p className="text-gray-300 text-lg">{message || "We'll notify you when we launch."}</p>
+            <p className="text-gray-300 text-lg">We'll notify you when we launch.</p>
           </div>
         )}
       </div>

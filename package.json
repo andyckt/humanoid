@@ -7,7 +7,7 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "setup-db": "npx tsx scripts/create-waiting-list-table.ts"
+    "setup-mongodb": "node scripts/setup-mongodb.js"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -41,7 +41,6 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@splinetool/react-spline": "latest",
     "@splinetool/runtime": "latest",
-    "@supabase/supabase-js": "^2.50.5",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -51,6 +50,8 @@
     "framer-motion": "latest",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.18.3",
     "next": "15.2.4",
     "next-themes": "^0.4.4",
     "react": "^19",
@@ -69,6 +70,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

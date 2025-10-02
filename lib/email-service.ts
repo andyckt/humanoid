@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import clientPromise from './mongodb';
 
 export interface SubscriptionResponse {
   success: boolean;
@@ -6,7 +6,7 @@ export interface SubscriptionResponse {
 }
 
 /**
- * Adds an email to the waiting list in Supabase
+ * Adds an email to the waiting list in MongoDB
  */
 export async function subscribeToWaitingList(email: string): Promise<SubscriptionResponse> {
   try {
@@ -18,26 +18,25 @@ export async function subscribeToWaitingList(email: string): Promise<Subscriptio
       };
     }
 
-    // Insert the email into the 'waiting_list' table
-    const { error } = await supabase
-      .from('waiting_list')
-      .insert([{ email, subscribed_at: new Date().toISOString() }]);
+    const client = await clientPromise;
+    const db = client.db();
+    const collection = db.collection('AHR');
 
-    if (error) {
-      // Check if it's a duplicate email error
-      if (error.code === '23505') {
-        return {
-          success: false,
-          message: 'This email is already on our waiting list.'
-        };
-      }
-      
-      console.error('Error subscribing to waiting list:', error);
+    // Check if email already exists
+    const existingEmail = await collection.findOne({ email });
+    if (existingEmail) {
       return {
         success: false,
-        message: 'Failed to join the waiting list. Please try again later.'
+        message: 'This email is already on our waiting list.'
       };
     }
+
+    // Insert the email into the 'AHR' collection
+    await collection.insertOne({ 
+      email, 
+      subscribed_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    });
 
     return {
       success: true,
@@ -50,4 +49,21 @@ export async function subscribeToWaitingList(email: string): Promise<Subscriptio
       message: 'An unexpected error occurred. Please try again later.'
     };
   }
-} 
+}
+
+/**
+ * Gets all emails from the waiting list
+ */
+export async function getAllEmails() {
+  try {
+    const client = await clientPromise;
+    const db = client.db();
+    const collection = db.collection('AHR');
+    
+    const emails = await collection.find({}).sort({ created_at: -1 }).toArray();
+    return emails;
+  } catch (error) {
+    console.error('Error fetching emails:', error);
+    throw error;
+  }
+}
